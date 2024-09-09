@@ -236,6 +236,12 @@ class DynInst : public ExecContext, public RefCounted
     // Whether or not the source register is ready, one bit per register.
     uint8_t *_readySrcIdx;
 
+    // Opclass of the afinity instruction if redecoded
+    OpClass redecodedOpClass = staticInst->opClass();
+
+    // Whether or not the instruction has been redecoded
+    bool redecoded = false;
+
   public:
     size_t numSrcs() const { return _numSrcs; }
     size_t numDests() const { return _numDests; }
@@ -312,6 +318,17 @@ class DynInst : public ExecContext, public RefCounted
         uint8_t &byte = _readySrcIdx[idx / 8];
         replaceBits(byte, idx % 8, ready ? 1 : 0);
     }
+
+    // Redecoded setter and getter
+    void redecodeInst() { redecoded = true;  }
+    bool isRedecoded() { return redecoded; }
+
+    // The redecode() Function sets the redecodedOpClass
+    // to the OpClass of the afinity instruction
+    void redecode(OpClass newOpClass) { redecodedOpClass = newOpClass; }
+
+    // The getRedecodedOpClass() Function gets the redecodedOpClass
+    OpClass getRedecodedOpClass() { return redecodedOpClass; }
 
     /** The thread this instruction is from. */
     ThreadID threadNumber = 0;

@@ -1,0 +1,4 @@
+Import('*')
+
+SimObject('TutorialObject.py', sim_objects=['TutorialObject'])
+Source('tutorial_object.cc')

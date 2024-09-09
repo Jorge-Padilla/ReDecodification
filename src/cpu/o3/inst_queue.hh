@@ -277,6 +277,17 @@ class InstructionQueue
     /** Debug function to print all instructions. */
     void printInsts();
 
+    /** Debugging function to dump all the list sizes, as well as print
+     *  out the list of nonspeculative instructions.  Should not be used
+     *  in any other capacity, but it has no harmful sideaffects.
+     */
+    void dumpLists();
+
+    /** Debugging function to dump out all instructions that are in the
+     *  IQ.
+     */
+    void dumpInsts();
+
   private:
     /** Does the actual squashing. */
     void doSquash(ThreadID tid);
@@ -469,16 +480,16 @@ class InstructionQueue
      */
     int countInsts();
 
-    /** Debugging function to dump all the list sizes, as well as print
-     *  out the list of nonspeculative instructions.  Should not be used
-     *  in any other capacity, but it has no harmful sideaffects.
-     */
-    void dumpLists();
+//DEBUG    /** Debugging function to dump all the list sizes, as well as print
+//DEBUG     *  out the list of nonspeculative instructions.  Should not be used
+//DEBUG     *  in any other capacity, but it has no harmful sideaffects.
+//DEBUG     */
+//DEBUG    void dumpLists();
 
-    /** Debugging function to dump out all instructions that are in the
-     *  IQ.
-     */
-    void dumpInsts();
+//DEBUG    /** Debugging function to dump out all instructions that are in the
+//DEBUG     *  IQ.
+//DEBUG     */
+//DEBUG    void dumpInsts();
 
     struct IQStats : public statistics::Group
     {

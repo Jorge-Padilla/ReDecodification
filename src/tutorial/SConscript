@@ -1,0 +1,9 @@
+Import('*')
+
+SimObject('TutorialObject.py', sim_objects=['TutorialObject'])
+SimObject('ExtraObject.py', sim_objects=['ExtraObject'])
+Source('tutorial_object.cc')
+Source('extra_object.cc')
+
+DebugFlag('TutorialExample')
+DebugFlag('ReDecode')

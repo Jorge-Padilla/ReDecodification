@@ -56,6 +56,7 @@
 #include "debug/Drain.hh"
 #include "debug/IEW.hh"
 #include "debug/O3PipeView.hh"
+#include "debug/ReDecode.hh"
 #include "params/BaseO3CPU.hh"
 
 namespace gem5
@@ -897,7 +898,11 @@ IEW::dispatchInsts(ThreadID tid)
         }
 
         // Check for full conditions.
-        if (instQueue.isFull(tid)) {
+        if (instQueue.isFull(tid)){// ||
+//            (inst->isFloating() && instQueue.getCurrentFpInsts() >= 16) ||
+//            (inst->isVector() && instQueue.getCurrentVecInsts() >= 16) ||
+//            (!inst->isVector() && !inst->isFloating()
+//              && instQueue.getCurrentIntInsts() >= 32)) {
             DPRINTF(IEW, "[tid:%i] Issue: IQ has become full.\n", tid);
 
             // Call function to start blocking.
@@ -1121,8 +1126,14 @@ IEW::executeInsts()
 
         DynInstPtr inst = instQueue.getInstToExecute();
 
-        DPRINTF(IEW, "Execute: Processing PC %s, [tid:%i] [sn:%llu].\n",
+        DPRINTF(IEW, "Execute: Processing PC %s,
+                [tid:%i] [sn:%llu].\n",
                 inst->pcState(), inst->threadNumber,inst->seqNum);
+
+        DPRINTF(ReDecode, "Execute: Processing PC %s,
+                [tid:%i] opclass:%d, [sn:%llu].\n",
+                inst->pcState(), inst->threadNumber,
+                inst->opClass(),inst->seqNum);
 
         // Notify potential listeners that this instruction has started
         // executing
@@ -1235,6 +1246,9 @@ IEW::executeInsts()
 
             instToCommit(inst);
         }
+
+        DPRINTF(ReDecode, "\t\t\t\tEXECUTED: PC %s, [tid:%i] [sn:%llu].\n",
+                inst->pcState(), inst->threadNumber,inst->seqNum);
 
         updateExeInstStats(inst);
 
@@ -1386,6 +1400,12 @@ IEW::writebackInsts()
             }
             iewStats.writebackCount[tid]++;
         }
+
+        DPRINTF(ReDecode, "\t\t\t\tCOMMITED: PC %s,
+            [tid:%i] opclass:%d, [sn:%llu].\n",
+            inst->pcState(), inst->threadNumber,
+            inst->opClass(),inst->seqNum);
+
     }
 }
 

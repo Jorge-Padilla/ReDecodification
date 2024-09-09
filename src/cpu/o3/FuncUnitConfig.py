@@ -44,7 +44,7 @@ from m5.SimObject import SimObject
 
 class IntALU(FUDesc):
     opList = [OpDesc(opClass="IntAlu")]
-    count = 6
+    count = 3  # FIRST TEST: Less IntALU FUs
 
 
 class IntMultDiv(FUDesc):
