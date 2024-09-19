@@ -1126,12 +1126,11 @@ IEW::executeInsts()
 
         DynInstPtr inst = instQueue.getInstToExecute();
 
-        DPRINTF(IEW, "Execute: Processing PC %s,
-                [tid:%i] [sn:%llu].\n",
+        DPRINTF(IEW, "Execute: Processing PC %s, [tid:%i] [sn:%llu].\n",
                 inst->pcState(), inst->threadNumber,inst->seqNum);
 
-        DPRINTF(ReDecode, "Execute: Processing PC %s,
-                [tid:%i] opclass:%d, [sn:%llu].\n",
+        DPRINTF(ReDecode, "Execute: Processing PC "
+        "%s, [tid:%i] opclass:%d, [sn:%llu].\n",
                 inst->pcState(), inst->threadNumber,
                 inst->opClass(),inst->seqNum);
 
@@ -1401,8 +1400,8 @@ IEW::writebackInsts()
             iewStats.writebackCount[tid]++;
         }
 
-        DPRINTF(ReDecode, "\t\t\t\tCOMMITED: PC %s,
-            [tid:%i] opclass:%d, [sn:%llu].\n",
+        DPRINTF(ReDecode, "\t\t\t\tCOMMITED: "
+        "PC %s, [tid:%i] opclass:%d, [sn:%llu].\n",
             inst->pcState(), inst->threadNumber,
             inst->opClass(),inst->seqNum);
 

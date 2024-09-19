@@ -418,8 +418,8 @@ InstructionQueue::resetState()
 
     for (int i = 0; i < Num_OpClasses; ++i) {
         while (!readyInsts[i].empty()){
-            DPRINTF(ReDecode, "REMOVE FROM readyInsts op_class=%d
-            size=%d EMPTY\n",i,readyInsts[i].size());
+            DPRINTF(ReDecode, "REMOVE FROM readyInsts "
+            "op_class=%d size=%d EMPTY\n",i,readyInsts[i].size());
             readyInsts[i].pop();
         }
         queueOnList[i] = false;
@@ -811,8 +811,8 @@ InstructionQueue::scheduleReadyInsts()
         assert(issuing_inst->seqNum == (*order_it).oldestInst);
 
         if (issuing_inst->isSquashed()) {
-            DPRINTF(ReDecode, "REMOVE FROM readyInsts op_class=%d
-                from queue:%d size=%d, size_SimdAlu=%d POP\n",
+            DPRINTF(ReDecode, "REMOVE FROM readyInsts "
+            "op_class=%d from queue:%d size=%d, size_SimdAlu=%d POP\n",
                 op_class,redecode,readyInsts[op_class/*+4*/].size(),
                 readyInsts[enums::SimdAlu].size());
 
@@ -886,8 +886,8 @@ InstructionQueue::scheduleReadyInsts()
                     tid, issuing_inst->pcState(),
                     issuing_inst->seqNum);
 
-            DPRINTF(ReDecode, "REMOVE FROM readyInsts op_class=%d
-                from queue:%d size=%d\n",
+            DPRINTF(ReDecode, "REMOVE FROM readyInsts "
+            "op_class=%d from queue:%d size=%d\n",
                 op_class,op_class/*+4*/,readyInsts[op_class/*+4*/].size());
 
             readyInsts[op_class/*+4*/].pop();
@@ -1094,8 +1094,8 @@ InstructionQueue::addReadyMemInst(const DynInstPtr &ready_inst)
 
     readyInsts[op_class/*+4*/].push(ready_inst);
 
-    DPRINTF(ReDecode,"\t\tADD TO readyInsts op_class=%d
-        to queue:%d size=%d inst=%d MEM\n",
+    DPRINTF(ReDecode,"\t\tADD TO readyInsts "
+        "op_class=%d to queue:%d size=%d inst=%d MEM\n",
         op_class,op_class/*+4*/,readyInsts[op_class/*+4*/].size(),
         ready_inst->seqNum);
 
@@ -1110,8 +1110,8 @@ InstructionQueue::addReadyMemInst(const DynInstPtr &ready_inst)
     }
 
     DPRINTF(IQ, "Instruction is ready to issue, putting it onto "
-            "the ready list, PC %s opclass:%i [sn:%llu].\n",
-            ready_inst->pcState(), op_class, ready_inst->seqNum);
+        "the ready list, PC %s opclass:%i [sn:%llu].\n",
+        ready_inst->pcState(), op_class, ready_inst->seqNum);
 }
 
 void
@@ -1473,16 +1473,17 @@ InstructionQueue::addIfReady(const DynInstPtr &inst)
 //        readyInsts[op_class].push(inst);
         if ((op_class == enums::IntAlu) &
             (readyInsts[op_class].size() > readyInsts[enums::SimdAlu].size())){
-            DPRINTF(ReDecode,"\t\tREDECODED ADD TO readyInsts op_class=%d
-            to queue:SimdAlu size_IntAlu=%d size_SimdAlu=%d inst=%d\n",
+            DPRINTF(ReDecode,"\t\tREDECODED ADD TO readyInsts "
+            "op_class=%d to queue:SimdAlu size_IntAlu=%d "
+            "size_SimdAlu=%d inst=%d\n",
             op_class,readyInsts[op_class].size(),
             readyInsts[enums::SimdAlu].size(),inst->seqNum);
             readyInsts[enums::SimdAlu].push(inst);
             inst->redecodeInst();
             op_class = enums::SimdAlu;
         } else {
-            DPRINTF(ReDecode,"\t\tADD TO readyInsts op_class=%d size_current=%d
-            size_SimdAlu=%d inst=%d\n",
+            DPRINTF(ReDecode,"\t\tADD TO readyInsts "
+            "op_class=%d size_current=%d size_SimdAlu=%d inst=%d\n",
             op_class,readyInsts[op_class].size(),
             readyInsts[enums::SimdAlu].size(),inst->seqNum);
             readyInsts[op_class/*+4*/].push(inst);
