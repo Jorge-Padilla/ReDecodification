@@ -46,6 +46,7 @@
 #include "base/statistics.hh"
 #include "cpu/exetrace.hh"
 #include "cpu/inst_seq.hh"
+#include "cpu/o3/affinity_table.hh"
 #include "cpu/o3/comm.hh"
 #include "cpu/o3/dyn_inst_ptr.hh"
 #include "cpu/o3/iew.hh"
@@ -460,6 +461,13 @@ class Commit
     // HTM
     int htmStarts[MaxThreads];
     int htmStops[MaxThreads];
+
+    //////////////////////////////////////
+    // Re-Decodification Classes
+    //////////////////////////////////////
+
+    /** Affinity Table **/
+    AffinityTable affinityTable;
 
     struct CommitStats : public statistics::Group
     {

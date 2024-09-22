@@ -51,6 +51,7 @@
 #include "cpu/base.hh"
 #include "cpu/checker/cpu.hh"
 #include "cpu/exetrace.hh"
+#include "cpu/o3/affinity_table.hh"
 #include "cpu/o3/cpu.hh"
 #include "cpu/o3/dyn_inst.hh"
 #include "cpu/o3/limits.hh"
@@ -971,10 +972,13 @@ Commit::commitInsts()
             bool commit_success = commitHead(head_inst, num_committed);
 
             if (commit_success) {
+                OpClass op_class = head_inst->isRedecoded() ?
+                    affinityTable.getAffinity(head_inst->opClass()) :
+                    head_inst->opClass();
                 ++num_committed;
                 cpu->commitStats[tid]
-                    ->committedInstType[head_inst->opClass()]++;
-                stats.committedInstType[tid][head_inst->opClass()]++;
+                    ->committedInstType[op_class]++;
+                stats.committedInstType[tid][op_class]++;
                 ppCommit->notify(head_inst);
 
                 // hardware transactional memory
@@ -1375,16 +1379,19 @@ Commit::updateComInstStats(const DynInstPtr &inst)
     }
 
     // Integer Instruction
-    if (inst->isInteger()) {
+    if (inst->isInteger() &
+    !inst->isRedecoded()) {
         cpu->commitStats[tid]->numIntInsts++;
     }
 
     // Floating Point Instruction
-    if (inst->isFloating()) {
+    if (inst->isFloating() &
+    !inst->isRedecoded()) {
         cpu->commitStats[tid]->numFpInsts++;
     }
     // Vector Instruction
-    if (inst->isVector()) {
+    if (inst->isVector() |
+    inst->isRedecoded()) {
         cpu->commitStats[tid]->numVecInsts++;
     }
 

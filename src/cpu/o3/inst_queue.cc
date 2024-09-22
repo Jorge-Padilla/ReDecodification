@@ -45,6 +45,7 @@
 #include <vector>
 
 #include "base/logging.hh"
+#include "cpu/o3/affinity_table.hh"
 #include "cpu/o3/dyn_inst.hh"
 #include "cpu/o3/fu_pool.hh"
 #include "cpu/o3/limits.hh"
@@ -218,7 +219,9 @@ InstructionQueue::IQStats::IQStats(CPU *cpu, const unsigned &total_width)
     ADD_STAT(fuBusy, statistics::units::Count::get(), "FU busy when requested"),
     ADD_STAT(fuBusyRate, statistics::units::Rate<
                 statistics::units::Count, statistics::units::Count>::get(),
-             "FU busy rate (busy events/executed inst)")
+             "FU busy rate (busy events/executed inst)"),
+    ADD_STAT(instReDecoded, statistics::units::Count::get(),
+             "Number of times an instruction has been Re-Decodificated")
 {
     instsAdded
         .prereq(instsAdded);
@@ -566,9 +569,11 @@ InstructionQueue::hasReadyInsts()
 void
 InstructionQueue::insert(const DynInstPtr &new_inst)
 {
-    if (new_inst->isFloating()) {
+    if (new_inst->isFloating() &
+    !new_inst->isRedecoded()) {
         iqIOStats.fpInstQueueWrites++;
-    } else if (new_inst->isVector()) {
+    } else if (new_inst->isVector() |
+    new_inst->isRedecoded()) {
         iqIOStats.vecInstQueueWrites++;
     } else {
         iqIOStats.intInstQueueWrites++;
@@ -582,10 +587,6 @@ InstructionQueue::insert(const DynInstPtr &new_inst)
     assert(freeEntries != 0);
 
     instList[new_inst->threadNumber].push_back(new_inst);
-
-//    printf("Add to instList");
-//    dumpInsts();
-//    dumpLists();
 
     --freeEntries;
 
@@ -617,9 +618,11 @@ InstructionQueue::insertNonSpec(const DynInstPtr &new_inst)
 {
     // @todo: Clean up this code; can do it by setting inst as unable
     // to issue, then calling normal insert on the inst.
-    if (new_inst->isFloating()) {
+    if (new_inst->isFloating() &
+    !new_inst->isRedecoded()) {
         iqIOStats.fpInstQueueWrites++;
-    } else if (new_inst->isVector()) {
+    } else if (new_inst->isVector() |
+    new_inst->isRedecoded()) {
         iqIOStats.vecInstQueueWrites++;
     } else {
         iqIOStats.intInstQueueWrites++;
@@ -676,9 +679,11 @@ InstructionQueue::getInstToExecute()
     assert(!instsToExecute.empty());
     DynInstPtr inst = std::move(instsToExecute.front());
     instsToExecute.pop_front();
-    if (inst->isFloating()) {
+    if (inst->isFloating() &
+    !inst->isRedecoded()) {
         iqIOStats.fpInstQueueReads++;
-    } else if (inst->isVector()) {
+    } else if (inst->isVector() |
+    inst->isRedecoded()) {
         iqIOStats.vecInstQueueReads++;
     } else {
         iqIOStats.intInstQueueReads++;
@@ -689,13 +694,13 @@ InstructionQueue::getInstToExecute()
 void
 InstructionQueue::addToOrderList(OpClass op_class)
 {
-    assert(!readyInsts[op_class/*+4*/].empty());
+    assert(!readyInsts[op_class].empty());
 
     ListOrderEntry queue_entry;
 
     queue_entry.queueType = op_class;
 
-    queue_entry.oldestInst = readyInsts[op_class/*+4*/].top()->seqNum;
+    queue_entry.oldestInst = readyInsts[op_class].top()->seqNum;
 
     ListOrderIt list_it = listOrder.begin();
     ListOrderIt list_end_it = listOrder.end();
@@ -708,8 +713,8 @@ InstructionQueue::addToOrderList(OpClass op_class)
         list_it++;
     }
 
-    readyIt[op_class/*+4*/] = listOrder.insert(list_it, queue_entry);
-    queueOnList[op_class/*+4*/] = true;
+    readyIt[op_class] = listOrder.insert(list_it, queue_entry);
+    queueOnList[op_class] = true;
 }
 
 void
@@ -727,14 +732,14 @@ InstructionQueue::moveToYoungerInst(ListOrderIt list_order_it)
     ++next_it;
 
     queue_entry.queueType = op_class;
-    queue_entry.oldestInst = readyInsts[op_class/*+4*/].top()->seqNum;
+    queue_entry.oldestInst = readyInsts[op_class].top()->seqNum;
 
     while (next_it != listOrder.end() &&
            (*next_it).oldestInst < queue_entry.oldestInst) {
         ++next_it;
     }
 
-    readyIt[op_class/*+4*/] = listOrder.insert(next_it, queue_entry);
+    readyIt[op_class] = listOrder.insert(next_it, queue_entry);
 }
 
 void
@@ -792,17 +797,20 @@ InstructionQueue::scheduleReadyInsts()
 
     while (total_issued < totalWidth && order_it != order_end_it) {
         OpClass op_class = (*order_it).queueType;
+        OpClass redecode_op_class = affinityTable.getAffinity(op_class);
 
-        assert(!readyInsts[op_class/*+4*/].empty());
+        assert(!readyInsts[op_class].empty());
 
-        DynInstPtr issuing_inst = readyInsts[op_class/*+4*/].top();
+        DynInstPtr issuing_inst = readyInsts[op_class].top();
 
-        OpClass redecode = op_class == issuing_inst->isRedecoded() ?
-            enums::SimdAlu : op_class;
+        OpClass redecode = issuing_inst->isRedecoded() ?
+            redecode_op_class : op_class;
 
-        if (issuing_inst->isFloating()) {
+        if (issuing_inst->isFloating() &
+        !issuing_inst->isRedecoded()) {
             iqIOStats.fpInstQueueReads++;
-        } else if (issuing_inst->isVector()) {
+        } else if (issuing_inst->isVector() |
+        issuing_inst->isRedecoded()) {
             iqIOStats.vecInstQueueReads++;
         } else {
             iqIOStats.intInstQueueReads++;
@@ -812,17 +820,17 @@ InstructionQueue::scheduleReadyInsts()
 
         if (issuing_inst->isSquashed()) {
             DPRINTF(ReDecode, "REMOVE FROM readyInsts "
-            "op_class=%d from queue:%d size=%d, size_SimdAlu=%d POP\n",
-                op_class,redecode,readyInsts[op_class/*+4*/].size(),
-                readyInsts[enums::SimdAlu].size());
+            "op_class=%d from queue:%d size=%d, size_affinity=%d POP\n",
+                op_class,redecode,readyInsts[op_class].size(),
+                readyInsts[redecode_op_class].size());
 
-            readyInsts[op_class/*+4*/].pop();
+            readyInsts[op_class].pop();
 
-            if (!readyInsts[op_class/*+4*/].empty()) {
+            if (!readyInsts[op_class].empty()) {
                 moveToYoungerInst(order_it);
             } else {
-                readyIt[op_class/*+4*/] = listOrder.end();
-                queueOnList[op_class/*+4*/] = false;
+                readyIt[op_class] = listOrder.end();
+                queueOnList[op_class] = false;
             }
 
             listOrder.erase(order_it++);
@@ -838,9 +846,11 @@ InstructionQueue::scheduleReadyInsts()
 
         if (op_class != No_OpClass) {
             idx = fuPool->getUnit(redecode);
-            if (issuing_inst->isFloating()) {
+            if (issuing_inst->isFloating() &
+            !issuing_inst->isRedecoded()) {
                 iqIOStats.fpAluAccesses++;
-            } else if (issuing_inst->isVector()) {
+            } else if (issuing_inst->isVector() |
+            issuing_inst->isRedecoded()) {
                 iqIOStats.vecAluAccesses++;
             } else {
                 iqIOStats.intAluAccesses++;
@@ -888,15 +898,15 @@ InstructionQueue::scheduleReadyInsts()
 
             DPRINTF(ReDecode, "REMOVE FROM readyInsts "
             "op_class=%d from queue:%d size=%d\n",
-                op_class,op_class/*+4*/,readyInsts[op_class/*+4*/].size());
+                op_class,redecode,readyInsts[op_class].size());
 
-            readyInsts[op_class/*+4*/].pop();
+            readyInsts[op_class].pop();
 
-            if (!readyInsts[op_class/*+4*/].empty()) {
+            if (!readyInsts[op_class].empty()) {
                 moveToYoungerInst(order_it);
             } else {
-                readyIt[op_class/*+4*/] = listOrder.end();
-                queueOnList[op_class/*+4*/] = false;
+                readyIt[op_class] = listOrder.end();
+                queueOnList[op_class] = false;
             }
 
             issuing_inst->setIssued();
@@ -992,9 +1002,11 @@ InstructionQueue::wakeDependents(const DynInstPtr &completed_inst)
     int dependents = 0;
 
     // The instruction queue here takes care of both floating and int ops
-    if (completed_inst->isFloating()) {
+    if (completed_inst->isFloating() &
+    !completed_inst->isRedecoded()) {
         iqIOStats.fpInstQueueWakeupAccesses++;
-    } else if (completed_inst->isVector()) {
+    } else if (completed_inst->isVector() |
+    completed_inst->isRedecoded()) {
         iqIOStats.vecInstQueueWakeupAccesses++;
     } else {
         iqIOStats.intInstQueueWakeupAccesses++;
@@ -1092,20 +1104,20 @@ InstructionQueue::addReadyMemInst(const DynInstPtr &ready_inst)
 {
     OpClass op_class = ready_inst->opClass();
 
-    readyInsts[op_class/*+4*/].push(ready_inst);
+    readyInsts[op_class].push(ready_inst);
 
     DPRINTF(ReDecode,"\t\tADD TO readyInsts "
         "op_class=%d to queue:%d size=%d inst=%d MEM\n",
-        op_class,op_class/*+4*/,readyInsts[op_class/*+4*/].size(),
+        op_class,op_class,readyInsts[op_class].size(),
         ready_inst->seqNum);
 
     // Will need to reorder the list if either a queue is not on the list,
     // or it has an older instruction than last time.
-    if (!queueOnList[op_class/*+4*/]) {
+    if (!queueOnList[op_class]) {
         addToOrderList(op_class);
-    } else if (readyInsts[op_class/*+4*/].top()->seqNum  <
-               (*readyIt[op_class/*+4*/]).oldestInst) {
-        listOrder.erase(readyIt[op_class/*+4*/]);
+    } else if (readyInsts[op_class].top()->seqNum  <
+               (*readyIt[op_class]).oldestInst) {
+        listOrder.erase(readyIt[op_class]);
         addToOrderList(op_class);
     }
 
@@ -1226,9 +1238,11 @@ InstructionQueue::doSquash(ThreadID tid)
            (*squash_it)->seqNum > squashedSeqNum[tid]) {
 
         DynInstPtr squashed_inst = (*squash_it);
-        if (squashed_inst->isFloating()) {
+        if (squashed_inst->isFloating() &
+        !squashed_inst->isRedecoded()) {
             iqIOStats.fpInstQueueWrites++;
-        } else if (squashed_inst->isVector()) {
+        } else if (squashed_inst->isVector() |
+        squashed_inst->isRedecoded()) {
             iqIOStats.vecInstQueueWrites++;
         } else {
             iqIOStats.intInstQueueWrites++;
@@ -1466,41 +1480,39 @@ InstructionQueue::addIfReady(const DynInstPtr &inst)
                 "the ready list, PC %s opclass:%i [sn:%llu].\n",
                 inst->pcState(), op_class, inst->seqNum);
 
-/*
-        EXPERIMENT 1: Do the FUs block instructions from different queues?
-*/
-
-//        readyInsts[op_class].push(inst);
-        if ((op_class == enums::IntAlu) &
-            (readyInsts[op_class].size() > readyInsts[enums::SimdAlu].size())){
+    // Old Method
+    //    readyInsts[op_class].push(inst);
+    // Re-Decodification Method
+    //  Get the affinity
+    //  If The queue of the original instruction is almost full
+    //      Re-Decode instruction with its affinity
+        OpClass redecode_op_class = affinityTable.getAffinity(op_class);
+        if ((op_class != redecode_op_class) &
+            (readyInsts[op_class].size() >
+            readyInsts[redecode_op_class].size())){
             DPRINTF(ReDecode,"\t\tREDECODED ADD TO readyInsts "
-            "op_class=%d to queue:SimdAlu size_IntAlu=%d "
-            "size_SimdAlu=%d inst=%d\n",
-            op_class,readyInsts[op_class].size(),
-            readyInsts[enums::SimdAlu].size(),inst->seqNum);
-            readyInsts[enums::SimdAlu].push(inst);
+            "op_class=%d to queue:%d size_IntAlu=%d "
+            "size_affinity=%d inst=%d\n",
+            op_class,redecode_op_class,readyInsts[op_class].size(),
+            readyInsts[redecode_op_class].size(),inst->seqNum);
+            readyInsts[redecode_op_class].push(inst);
             inst->redecodeInst();
-            op_class = enums::SimdAlu;
+            op_class = redecode_op_class;
+            iqStats.instReDecoded++;
         } else {
             DPRINTF(ReDecode,"\t\tADD TO readyInsts "
-            "op_class=%d size_current=%d size_SimdAlu=%d inst=%d\n",
-            op_class,readyInsts[op_class].size(),
-            readyInsts[enums::SimdAlu].size(),inst->seqNum);
-            readyInsts[op_class/*+4*/].push(inst);
+            "op_class=%d size_current=%d inst=%d\n",
+            op_class,readyInsts[op_class].size(),inst->seqNum);
+            readyInsts[op_class].push(inst);
         }
-
-//        printf("\t\tADD TO readyInsts op_class=%d inst=%d\n",op_class,inst);
-//        dumpLists();
 
         // Will need to reorder the list if either a queue is not on the list,
         // or it has an older instruction than last time.
-        if (!queueOnList[op_class/*+4*/]) {
-            //DPRINTF(ReDecode,"FIRST IF\n");
+        if (!queueOnList[op_class]) {
             addToOrderList(op_class);
-        } else if (readyInsts[op_class/*+4*/].top()->seqNum  <
-                   (*readyIt[op_class/*+4*/]).oldestInst) {
-            //DPRINTF(ReDecode,"SECOND IF\n");
-            listOrder.erase(readyIt[op_class/*+4*/]);
+        } else if (readyInsts[op_class].top()->seqNum  <
+                   (*readyIt[op_class]).oldestInst) {
+            listOrder.erase(readyIt[op_class]);
             addToOrderList(op_class);
         }
     }

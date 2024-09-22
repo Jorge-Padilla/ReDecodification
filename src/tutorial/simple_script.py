@@ -161,7 +161,7 @@ Process is a SimObject
     Create the functional execution context
 """
 binary = "tests/test-progs/hello/bin/x86/linux/hello"
-# binary = 'tests/test-progs/threads/bin/x86/linux/threads'
+# binary = "tests/test-progs/threads/bin/x86/linux/threads"
 
 system.workload = SEWorkload.init_compatible(binary)
 

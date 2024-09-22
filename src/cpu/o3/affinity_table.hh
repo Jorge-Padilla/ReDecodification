@@ -39,8 +39,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __CPU_O3_DYN_INST_HH__
-#define __CPU_O3_DYN_INST_HH__
+#ifndef __CPU_O3_AFFINITY_TABLE_HH__
+#define __CPU_O3_AFFINITY_TABLE_HH__
 
 #include <algorithm>
 #include <array>
@@ -56,27 +56,27 @@ namespace gem5
 namespace o3
 {
 
-class AfinityTable
+class AffinityTable
 {
     protected:
         // Hash table that will represent the affinity table
         // The key is the inputed OpClass
         // The value is the affinity Opclass
-        std::unordered_map<Opclass,Opclass>__affinityTable;
+        std::unordered_map<OpClass,OpClass>__affinityTable;
 
     public:
         // Constructor
-        AfinityTable();
+        AffinityTable();
 
         // Function getAffinity which returns
         // a set member of the affinity table
-        getAffinity(Opclass inputOpClass)
+        OpClass getAffinity(OpClass inputOpClass)
         {
             return __affinityTable[inputOpClass];
         }
-}
+};
 
 } // namespace o3
 } // namespace gem5
 
-#endif // __CPU_O3_DYN_INST_HH__
+#endif // __CPU_O3_AFFINITY_TABLE_HH__

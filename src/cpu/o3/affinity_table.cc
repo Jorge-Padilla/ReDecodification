@@ -55,7 +55,7 @@ namespace gem5
 namespace o3
 {
 
-AfinityTable::AfinityTable()
+AffinityTable::AffinityTable()
 {
     __affinityTable[IntAluOp] = SimdAluOp;
     __affinityTable[IntMultOp] = SimdMultOp;

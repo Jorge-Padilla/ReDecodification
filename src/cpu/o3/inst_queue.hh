@@ -50,6 +50,7 @@
 #include "base/statistics.hh"
 #include "base/types.hh"
 #include "cpu/inst_seq.hh"
+#include "cpu/o3/affinity_table.hh"
 #include "cpu/o3/comm.hh"
 #include "cpu/o3/dep_graph.hh"
 #include "cpu/o3/dyn_inst_ptr.hh"
@@ -416,6 +417,13 @@ class InstructionQueue
     DependencyGraph<DynInstPtr> dependGraph;
 
     //////////////////////////////////////
+    // Re-Decodification Classes
+    //////////////////////////////////////
+
+    /** Affinity Table **/
+    AffinityTable affinityTable;
+
+    //////////////////////////////////////
     // Various parameters
     //////////////////////////////////////
 
@@ -552,6 +560,9 @@ class InstructionQueue
         statistics::Vector fuBusy;
         /** Number of times the FU was busy per instruction issued. */
         statistics::Formula fuBusyRate;
+
+        /** Number of times an instruction has been Re-Decodificated **/
+        statistics::Scalar instReDecoded;
     } iqStats;
 
    public:

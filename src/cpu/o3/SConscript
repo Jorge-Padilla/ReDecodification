@@ -45,6 +45,7 @@ if env['CONF']['BUILD_ISA']:
     Source('fu_pool.cc')
     Source('iew.cc')
     Source('inst_queue.cc')
+    Source('affinity_table.cc')
     Source('lsq.cc')
     Source('lsq_unit.cc')
     Source('mem_dep_unit.cc')
