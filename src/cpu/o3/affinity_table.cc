@@ -57,6 +57,7 @@ namespace o3
 
 AffinityTable::AffinityTable()
 {
+    //GPR -> SCALAR
     __affinityTable[IntAluOp] = SimdAluOp;
     __affinityTable[IntMultOp] = SimdMultOp;
     __affinityTable[IntDivOp] = SimdDivOp;
@@ -68,35 +69,35 @@ AffinityTable::AffinityTable()
     __affinityTable[FloatDivOp] = SimdFloatDivOp;
     __affinityTable[FloatMiscOp] = SimdFloatMiscOp;
     __affinityTable[FloatSqrtOp] = SimdFloatSqrtOp;
-    //TODO: New OpClass for long sized vectors?
-    __affinityTable[SimdAddOp] = SimdAddOp;
-    __affinityTable[SimdAddAccOp] = SimdAddAccOp;
-    __affinityTable[SimdAluOp] = SimdAluOp;
-    __affinityTable[SimdCmpOp] = SimdCmpOp;
-    __affinityTable[SimdCvtOp] = SimdCvtOp;
-    __affinityTable[SimdMiscOp] = SimdMiscOp;
-    __affinityTable[SimdMultOp] = SimdMultOp;
-    __affinityTable[SimdMultAccOp] = SimdMultAccOp;
-    __affinityTable[SimdMatMultAccOp] = SimdMatMultAccOp;
-    __affinityTable[SimdShiftOp] = SimdShiftOp;
-    __affinityTable[SimdShiftAccOp] = SimdShiftAccOp;
-    __affinityTable[SimdDivOp] = SimdDivOp;
-    __affinityTable[SimdSqrtOp] = SimdSqrtOp;
-    __affinityTable[SimdReduceAddOp] = SimdReduceAddOp;
-    __affinityTable[SimdReduceAluOp] = SimdReduceAluOp;
-    __affinityTable[SimdReduceCmpOp] = SimdReduceCmpOp;
-    __affinityTable[SimdFloatAddOp] = SimdFloatAddOp;
-    __affinityTable[SimdFloatAluOp] = SimdFloatAluOp;
-    __affinityTable[SimdFloatCmpOp] = SimdFloatCmpOp;
-    __affinityTable[SimdFloatCvtOp] = SimdFloatCvtOp;
-    __affinityTable[SimdFloatDivOp] = SimdFloatDivOp;
-    __affinityTable[SimdFloatMiscOp] = SimdFloatMiscOp;
-    __affinityTable[SimdFloatMultOp] = SimdFloatMultOp;
-    __affinityTable[SimdFloatMultAccOp] = SimdFloatMultAccOp;
-    __affinityTable[SimdFloatMatMultAccOp] = SimdFloatMatMultAccOp;
-    __affinityTable[SimdFloatSqrtOp] = SimdFloatSqrtOp;
-    __affinityTable[SimdFloatReduceCmpOp] = SimdFloatReduceCmpOp;
-    __affinityTable[SimdFloatReduceAddOp] = SimdFloatReduceAddOp;
+    // SCALAR -> Vector
+    __affinityTable[SimdAddOp] = SimdShadowAddOp;
+    __affinityTable[SimdAddAccOp] = SimdShadowAddAccOp;
+    __affinityTable[SimdAluOp] = SimdShadowAluOp;
+    __affinityTable[SimdCmpOp] = SimdShadowCmpOp;
+    __affinityTable[SimdCvtOp] = SimdShadowCvtOp;
+    __affinityTable[SimdMiscOp] = SimdShadowMiscOp;
+    __affinityTable[SimdMultOp] = SimdShadowMultOp;
+    __affinityTable[SimdMultAccOp] = SimdShadowMultAccOp;
+    __affinityTable[SimdMatMultAccOp] = SimdShadowMatMultAccOp;
+    __affinityTable[SimdShiftOp] = SimdShadowShiftOp;
+    __affinityTable[SimdShiftAccOp] = SimdShadowShiftAccOp;
+    __affinityTable[SimdDivOp] = SimdShadowDivOp;
+    __affinityTable[SimdSqrtOp] = SimdShadowSqrtOp;
+    __affinityTable[SimdReduceAddOp] = SimdShadowReduceAddOp;
+    __affinityTable[SimdReduceAluOp] = SimdShadowReduceAluOp;
+    __affinityTable[SimdReduceCmpOp] = SimdShadowReduceCmpOp;
+    __affinityTable[SimdFloatAddOp] = SimdShadowFloatAddOp;
+    __affinityTable[SimdFloatAluOp] = SimdShadowFloatAluOp;
+    __affinityTable[SimdFloatCmpOp] = SimdShadowFloatCmpOp;
+    __affinityTable[SimdFloatCvtOp] = SimdShadowFloatCvtOp;
+    __affinityTable[SimdFloatDivOp] = SimdShadowFloatDivOp;
+    __affinityTable[SimdFloatMiscOp] = SimdShadowFloatMiscOp;
+    __affinityTable[SimdFloatMultOp] = SimdShadowFloatMultOp;
+    __affinityTable[SimdFloatMultAccOp] = SimdShadowFloatMultAccOp;
+    __affinityTable[SimdFloatMatMultAccOp] = SimdShadowFloatMatMultAccOp;
+    __affinityTable[SimdFloatSqrtOp] = SimdShadowFloatSqrtOp;
+    __affinityTable[SimdFloatReduceCmpOp] = SimdShadowFloatReduceCmpOp;
+    __affinityTable[SimdFloatReduceAddOp] = SimdShadowFloatReduceAddOp;
     __affinityTable[SimdAesOp] = SimdAesOp;
     __affinityTable[SimdAesMixOp] = SimdAesMixOp;
     __affinityTable[SimdSha1HashOp] = SimdSha1HashOp;

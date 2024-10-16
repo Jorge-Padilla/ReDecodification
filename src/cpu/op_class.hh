@@ -92,6 +92,62 @@ static const OpClass SimdFloatMatMultAccOp = enums::SimdFloatMatMultAcc;
 static const OpClass SimdFloatSqrtOp = enums::SimdFloatSqrt;
 static const OpClass SimdFloatReduceCmpOp = enums::SimdFloatReduceCmp;
 static const OpClass SimdFloatReduceAddOp = enums::SimdFloatReduceAdd;
+static const OpClass SimdShadowAddOp
+             = enums::SimdShadowAdd;
+static const OpClass SimdShadowAddAccOp
+             = enums::SimdShadowAddAcc;
+static const OpClass SimdShadowAluOp
+             = enums::SimdShadowAlu;
+static const OpClass SimdShadowCmpOp
+             = enums::SimdShadowCmp;
+static const OpClass SimdShadowCvtOp
+             = enums::SimdShadowCvt;
+static const OpClass SimdShadowMiscOp
+             = enums::SimdShadowMisc;
+static const OpClass SimdShadowMultOp
+             = enums::SimdShadowMult;
+static const OpClass SimdShadowMultAccOp
+             = enums::SimdShadowMultAcc;
+static const OpClass SimdShadowMatMultAccOp
+             = enums::SimdShadowMatMultAcc;
+static const OpClass SimdShadowShiftOp
+             = enums::SimdShadowShift;
+static const OpClass SimdShadowShiftAccOp
+             = enums::SimdShadowShiftAcc;
+static const OpClass SimdShadowDivOp
+             = enums::SimdShadowDiv;
+static const OpClass SimdShadowSqrtOp
+             = enums::SimdShadowSqrt;
+static const OpClass SimdShadowReduceAddOp
+             = enums::SimdShadowReduceAdd;
+static const OpClass SimdShadowReduceAluOp
+             = enums::SimdShadowReduceAlu;
+static const OpClass SimdShadowReduceCmpOp
+             = enums::SimdShadowReduceCmp;
+static const OpClass SimdShadowFloatAddOp
+             = enums::SimdShadowFloatAdd;
+static const OpClass SimdShadowFloatAluOp
+             = enums::SimdShadowFloatAlu;
+static const OpClass SimdShadowFloatCmpOp
+             = enums::SimdShadowFloatCmp;
+static const OpClass SimdShadowFloatCvtOp
+             = enums::SimdShadowFloatCvt;
+static const OpClass SimdShadowFloatDivOp
+             = enums::SimdShadowFloatDiv;
+static const OpClass SimdShadowFloatMiscOp
+             = enums::SimdShadowFloatMisc;
+static const OpClass SimdShadowFloatMultOp
+             = enums::SimdShadowFloatMult;
+static const OpClass SimdShadowFloatMultAccOp
+             = enums::SimdShadowFloatMultAcc;
+static const OpClass SimdShadowFloatMatMultAccOp
+             = enums::SimdShadowFloatMatMultAcc;
+static const OpClass SimdShadowFloatSqrtOp
+             = enums::SimdShadowFloatSqrt;
+static const OpClass SimdShadowFloatReduceCmpOp
+             = enums::SimdShadowFloatReduceCmp;
+static const OpClass SimdShadowFloatReduceAddOp
+             = enums::SimdShadowFloatReduceAdd;
 static const OpClass SimdAesOp = enums::SimdAes;
 static const OpClass SimdAesMixOp = enums::SimdAesMix;
 static const OpClass SimdSha1HashOp = enums::SimdSha1Hash;

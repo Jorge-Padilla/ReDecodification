@@ -1484,27 +1484,50 @@ InstructionQueue::addIfReady(const DynInstPtr &inst)
     //    readyInsts[op_class].push(inst);
     // Re-Decodification Method
     //  Get the affinity
+    //  GPR -> SCALAR
     //  If The queue of the original instruction is almost full
+    //      Re-Decode instruction with its affinity
+    //  SCALAR -> VECTOR
+    //  If the queue of the original is almost full and there is >1 instruction
     //      Re-Decode instruction with its affinity
         OpClass redecode_op_class = affinityTable.getAffinity(op_class);
         if ((op_class != redecode_op_class) &
             (readyInsts[op_class].size() >
-            readyInsts[redecode_op_class].size())){
-            DPRINTF(ReDecode,"\t\tREDECODED ADD TO readyInsts "
+            readyInsts[redecode_op_class].size()) &
+            !inst->isVector()){
+            DPRINTF(ReDecode,"\t\tREDECODED GPR->SCALAR ADD %s TO readyInsts "
             "op_class=%d to queue:%d size_IntAlu=%d "
-            "size_affinity=%d inst=%d\n",
+            "size_affinity=%d inst=%d\n", inst->staticInst->getName(),
             op_class,redecode_op_class,readyInsts[op_class].size(),
             readyInsts[redecode_op_class].size(),inst->seqNum);
-            readyInsts[redecode_op_class].push(inst);
             inst->redecodeInst();
             op_class = redecode_op_class;
             iqStats.instReDecoded++;
-        } else {
-            DPRINTF(ReDecode,"\t\tADD TO readyInsts "
-            "op_class=%d size_current=%d inst=%d\n",
-            op_class,readyInsts[op_class].size(),inst->seqNum);
-            readyInsts[op_class].push(inst);
         }
+
+        redecode_op_class = affinityTable.getAffinity(op_class);
+        if ((op_class != redecode_op_class) &
+            (readyInsts[op_class].size() >
+            readyInsts[redecode_op_class].size()) &
+            (inst->isVector() | inst->isRedecoded())){
+            DPRINTF(ReDecode,"\t\tREDECODED SCALAR->VECTOR ADD %s "
+            "TO readyInsts op_class=%d to queue:%d size_IntAlu=%d "
+            "size_affinity=%d inst=%d\n", inst->staticInst->getName(),
+            op_class,redecode_op_class,readyInsts[op_class].size(),
+            readyInsts[redecode_op_class].size(),inst->seqNum);
+            inst->redecodeInst();
+            op_class = redecode_op_class;
+            iqStats.instReDecoded++;
+        }
+
+        if (!inst->isRedecoded()) {
+            DPRINTF(ReDecode,"\t\tADD %s TO readyInsts "
+            "op_class=%d size_current=%d inst=%d\n",
+            inst->staticInst->getName(),
+            op_class,readyInsts[op_class].size(),inst->seqNum);
+        }
+
+        readyInsts[op_class].push(inst);
 
         // Will need to reorder the list if either a queue is not on the list,
         // or it has an older instruction than last time.

@@ -57,6 +57,7 @@ class DefaultFUPool(FUPool):
         FP_MultDiv(),
         ReadPort(),
         SIMD_Unit(),
+        SIMD_Shadow_Unit(),
         PredALU(),
         WritePort(),
         RdWrPort(),

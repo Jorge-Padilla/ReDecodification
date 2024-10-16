@@ -110,6 +110,40 @@ class SIMD_Unit(FUDesc):
     count = 4
 
 
+class SIMD_Shadow_Unit(FUDesc):
+    opList = [
+        OpDesc(opClass="SimdShadowAdd"),
+        OpDesc(opClass="SimdShadowAddAcc"),
+        OpDesc(opClass="SimdShadowAlu"),
+        OpDesc(opClass="SimdShadowCmp"),
+        OpDesc(opClass="SimdShadowCvt"),
+        OpDesc(opClass="SimdShadowMisc"),
+        OpDesc(opClass="SimdShadowMult"),
+        OpDesc(opClass="SimdShadowMultAcc"),
+        OpDesc(opClass="SimdShadowMatMultAcc"),
+        OpDesc(opClass="SimdShadowShift"),
+        OpDesc(opClass="SimdShadowShiftAcc"),
+        OpDesc(opClass="SimdShadowDiv"),
+        OpDesc(opClass="SimdShadowSqrt"),
+        OpDesc(opClass="SimdShadowFloatAdd"),
+        OpDesc(opClass="SimdShadowFloatAlu"),
+        OpDesc(opClass="SimdShadowFloatCmp"),
+        OpDesc(opClass="SimdShadowFloatCvt"),
+        OpDesc(opClass="SimdShadowFloatDiv"),
+        OpDesc(opClass="SimdShadowFloatMisc"),
+        OpDesc(opClass="SimdShadowFloatMult"),
+        OpDesc(opClass="SimdShadowFloatMultAcc"),
+        OpDesc(opClass="SimdShadowFloatMatMultAcc"),
+        OpDesc(opClass="SimdShadowFloatSqrt"),
+        OpDesc(opClass="SimdShadowReduceAdd"),
+        OpDesc(opClass="SimdShadowReduceAlu"),
+        OpDesc(opClass="SimdShadowReduceCmp"),
+        OpDesc(opClass="SimdShadowFloatReduceAdd"),
+        OpDesc(opClass="SimdShadowFloatReduceCmp"),
+    ]
+    count = 4
+
+
 class PredALU(FUDesc):
     opList = [OpDesc(opClass="SimdPredAlu")]
     count = 1
